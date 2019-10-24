@@ -7,11 +7,11 @@ function fetchRecentImages() {
       if(request.status == 200) {
         renderImages(JSON.parse(request.responseText));
       } else {
-        console.log("failed to fetch recent images");
+        console.log(request.status, "failed to fetch recent images");
       }
     }
   };
-  request.open("GET", BASE_API_URL + "/images");
+  request.open("GET", BASE_API_URL + "/image");
   request.send();
 }
 
@@ -22,11 +22,11 @@ function postReaction(reaction, callback) {
       if(request.status == 200) {
         callback && callback();
       } else {
-        console.log("failed to post reaction");
+        console.log(request.status, "failed to post reaction");
       }
     }
   };
-  request.open("POST", BASE_API_URL + "/react");
+  request.open("POST", BASE_API_URL + "/image/reaction");
   request.setRequestHeader("Content-Type", "application/json");
   request.send(JSON.stringify(reaction));
 }
@@ -45,6 +45,26 @@ function postLike(s3Object, callback) {
     s3Object: s3Object,
     type: 'like'
   });
+}
+
+function uploadImage(mimeType, b64Image, caption, callback) {
+  var request = new XMLHttpRequest();
+  request.onreadystatechange = () => {
+    if(request.readyState == XMLHttpRequest.DONE) {
+      if(request.status == 200) {
+        callback && callback();
+      } else {
+        console.log(request.status, "failed to post upload image");
+      }
+    }
+  };
+  request.open("POST", BASE_API_URL + "/image");
+  request.setRequestHeader("Content-Type", "application/json");
+  request.send(JSON.stringify({
+    caption: caption,
+    mimeType: mimeType,
+    image: b64Image
+  }));
 }
 
 // jQuery? React? Never heard of 'em.
@@ -173,6 +193,28 @@ function renderImages(images) {
   });
 }
 
+function configureUploadForm() {
+  var form = document.getElementById("upload-form");
+  var submitButton = document.getElementById("upload-button");
+  var fileInput = document.getElementById("image-file");
+  var captionInput = document.getElementById("image-caption");
+  submitButton.addEventListener("click", event => {
+    var file = fileInput.files[0];
+    var reader = new FileReader();
+    // Base64 encode the file and send it off to the API
+    reader.readAsBinaryString(file);
+    reader.onload = function () {
+      uploadImage(file.type, btoa(reader.result), captionInput.value, () => {
+        alert("image uploaded!");
+      });
+    };
+    reader.onerror = function (error) {
+      console.log('error reading image file', error);
+    };
+    event.preventDefault();
+  });
+}
+
 function onReady(fn) {
   if (document.readyState != 'loading'){
     fn();
@@ -181,4 +223,7 @@ function onReady(fn) {
   }
 }
 
-onReady(fetchRecentImages);
+onReady(() => {
+  configureUploadForm();
+  fetchRecentImages();
+});

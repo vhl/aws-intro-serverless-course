@@ -14,8 +14,10 @@ receive comments and "likes" from other users.  The marketing experts
 at the company have branded this application as the "Innovative Image
 Sharer."  Unfortunately, this company has very bad management and
 you've been given just *one day* to create the "minimum viable
-product" using AWS.  Quickly build this application so you can get
-paid before the VC money dries up!
+product" using AWS.  But there's good news!  They hired another
+developer to write a state-of-the-art web frontend and they're already
+done.  Quickly build the application backend so you can get paid
+before the VC money dries up!
 
 ## Services you will learn about
 
@@ -65,9 +67,6 @@ Create the `images` table:
 * Click "Create table"
 * Enter "images" in the "Table Name" field
 * Enter "s3Object" in the "Primary key" field
-* Select the "Add sort key" checkbox
-* Enter "timestamp" into the new text field
-* Select "Number" from the dropdown to the right of the text field
 * Click "Create"
 
 Create the `reactions` table:
@@ -147,10 +146,10 @@ what the API Gateway service was created to facilitate.
 * Click "Create API"
 * Open the "Actions" dropdown and select "Create Resource"
 * Enter "Image" in the "Resource Name" field
-* Enter "images" in the "Resource Path" field
+* Enter "image" in the "Resource Path" field
 * Select the "Enable API Gateway CORS" checkbox
 * Click "Create Resource"
-* With the `/images` resource selected, open the "Actions" dropdown
+* With the `/image` resource selected, open the "Actions" dropdown
   and select "Create Method"
 * Select "GET" from the new empty dropdown that appears
 * Click the check mark icon next to the dropdown
@@ -271,10 +270,11 @@ function fetchReactions(s3Object) {
 
 exports.handler = async (event, context, callback) => {
     return dynamodb.scan({
-        Limit: 10,
         TableName: "images"
     }).promise().then(results => {
-        return Promise.all(results.Items.map(item => {
+        return Promise.all(results.Items.sort((a, b) => {
+                return a.timestamp.N < b.timestamp.N;
+            }).map(item => {
             return fetchReactions(item.s3Object.S).then(reactions => {
                 return {
                     s3Object: item.s3Object.S,
@@ -336,22 +336,58 @@ We've walked you through setting up the core infrastructure and built
 one working API endpoint, but there are still two endpoints left to
 implement:
 
-* /upload - for uploading images
-* /react - for posting reactions ("like" and "comment" are the supported reaction types)
+* `POST /image`: upload an image
+* `POST /image/reaction`: post reaction ("like" and "comment" are the
+  supported reaction types)
 
 Now it's time to use what you've learned thus far to complete the
 backend API.  Take a look at the index.js file in this repository for
 more information about how the remaining endpoints are used.
 
+Image and reaction records will a unique id for their primary key
+field.  Use the following JavaScript function to generate good enough
+values for this exercise:
+
+```javascript
+function uuid() {
+    var dt = new Date().getTime();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = (dt + Math.random()*16)%16 | 0;
+        dt = Math.floor(dt/16);
+        return (c=='x' ? r :(r&0x3|0x8)).toString(16);
+    });
+}
+```
+
+The expected JSON request body for `POST /image` looks like this:
+
+```json
+{
+    "caption": "sleeping cat",
+    "mimeType": "image/jpeg",
+    "image": "<base64 encoded blob goes here>"
+}
+```
+
+The expected JSON request body for `POST /image/reaction` looks like
+this:
+
+```json
+{
+    "type": "comment or like",
+    "s3Object": "9d507409-c9b4-41d3-91ef-672310bfe209",
+    "name": "alice (only for comments)",
+    "text": "neat! (only for comments)"
+}
+```
+
 Ask for help if you get stuck.  Good luck!
 
-## Common issues you may run into
+## Common gotchas you may encounter
 
 * Forgetting to deploy API Gateway after making changes
 * Missing IAM policy to grant a Lambda function access to the right
   resources
-* Lambda function timing out? Increase the timeout a bunch so you can
-  debug what's taking so long.
 
 ## Extracurriculars
 
