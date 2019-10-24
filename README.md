@@ -369,6 +369,9 @@ The expected JSON request body for `POST /image` looks like this:
 }
 ```
 
+*Hint*: Use `new Buffer(base64String, "base64")` to convert base64
+text into usable binary data.
+
 The expected JSON request body for `POST /image/reaction` looks like
 this:
 
