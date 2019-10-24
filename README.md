@@ -30,6 +30,8 @@ before the VC money dries up!
 ## Helpful links
 
 * [AWS JavaScript SDK documentation](https://aws.amazon.com/sdk-for-node-js/)
+  * [S3](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html)
+  * [DynamoDB](https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/DynamoDB.html)
 * [DynamoDB documentation](https://docs.aws.amazon.com/dynamodb/index.html)
 * [DynamoDB IAM actions](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/api-permissions-reference.html)
 * [S3 IAM actions](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazons3.html)
