@@ -2,8 +2,8 @@
 
 ## Goal
 
-Build a simple serverless web application that gives participants
-hands-on experience with a number of essentials AWS services.
+Build a simple serverless web application that gives you hands-on
+experience with a number of essential AWS services.
 
 ## Prompt
 
