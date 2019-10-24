@@ -188,7 +188,8 @@ and CSS.
 * Click on the name of the bucket
 * Click "Upload"
 * Click "Add files"
-* Select `index.html` from the course materials repo
+* Select `index.html`, `index.js`, and `style.css` from the course
+  materials repo
 * Click "Next"
 * Select "Grant public access to this object(s)" from the "Manage
   public permissions" dropdown menu
