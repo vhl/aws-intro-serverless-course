@@ -148,8 +148,6 @@ what the API Gateway service was created to facilitate.
 * Click "Create API"
 * Open the "Actions" dropdown and select "Create Resource"
 * Enter "Image" in the "Resource Name" field
-* Enter "image" in the "Resource Path" field
-* Select the "Enable API Gateway CORS" checkbox
 * Click "Create Resource"
 * With the `/image` resource selected, open the "Actions" dropdown
   and select "Create Method"
@@ -163,6 +161,8 @@ what the API Gateway service was created to facilitate.
 * Click "Test" on the new screen that appears
 * Verify you see the JSON representation of the hardcoded JS data in
   the Lambda function
+* Open the "Actions" dropdown and click "Enable CORS"
+* Click "Enable CORS and replace existing CORS headers"
 * Open the "Actions" dropdown and click "Deploy API"
 * Select "New Stage" from the "Deployment stage" dropdown
 * Enter "test" in the "Stage name" field
