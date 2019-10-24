@@ -389,7 +389,7 @@ Ask for help if you get stuck.  Good luck!
 * Missing IAM policy to grant a Lambda function access to the right
   resources
 
-## Extracurriculars
+## Going further
 
 Here are some ideas for taking this silly little application to the
 next level:
@@ -399,9 +399,8 @@ next level:
   feature.  Modify the DynamoDB tables to track which user uploaded an
   image or added a reaction.
 * We don't do any post-processing of uploaded images such as resizing.
-  This means that someone could upload a massive image and mess up the
-  application for all users.  Try adding image resizing and/or enforce
-  a maximum file size for uploads.
+  AWS has services for manipulating media that could be used to
+  post-process all uploads.
 * Wouldn't it be cool to automatically extract any text that appears
   in an uploaded image?  Try using AWS's Textract service to make it
   happen.
