@@ -7,10 +7,17 @@ hands-on experience with a number of essentials AWS services.
 
 ## Prompt
 
-Create a web application where users can upload pictures and mark
-which ones they like from a chronological feed page.
+You've been hired by a startup to build a revolutionary new web
+application the likes of which the world has never seen.  Using this
+application, anyone can easily share their photos with the world and
+receive comments and "likes" from other users.  The marketing experts
+at the company have branded this application as the "Innovative Image
+Sharer."  Unfortunately, this company has very bad management and
+you've been given just *one day* to create the "minimum viable
+product" using AWS.  Quickly build this application so you can get
+paid before the VC money dries up!
 
-## Services
+## Services you will learn about
 
 * API Gateway
 * DynamoDB
@@ -21,6 +28,9 @@ which ones they like from a chronological feed page.
 ## Helpful links
 
 * [AWS JavaScript SDK documentation](https://aws.amazon.com/sdk-for-node-js/)
+* [DynamoDB documentation](https://docs.aws.amazon.com/dynamodb/index.html)
+* [DynamoDB IAM actions](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/api-permissions-reference.html)
+* [S3 IAM actions](https://docs.aws.amazon.com/IAM/latest/UserGuide/list_amazons3.html)
 
 ## Steps
 
@@ -47,17 +57,37 @@ Users upload images with a caption in this app.  To store this data,
 we will use DynamoDB tables.  We will use two tables: One to store
 references to uploaded images and another to store user reactions.
 
+Create the `images` table:
+
 * Go to the DynamoDB console
 * In the left-hand side menu (you may need to click an arrow to expand
   it), click "Tables"
 * Click "Create table"
 * Enter "images" in the "Table Name" field
 * Enter "s3Object" in the "Primary key" field
+* Select the "Add sort key" checkbox
+* Enter "timestamp" into the new text field
+* Select "Number" from the dropdown to the right of the text field
 * Click "Create"
+
+Create the `reactions` table:
+
 * Click "Create table"
 * Enter "reactions" in the "Table Name" field
 * Enter "s3Object" in the "Primary key" field
 * Click "Create"
+* Click "Create table"
+* Enter "reactions" in the "Table Name" field
+* Enter "uuid" in the "Primary key" field
+* Click "Create"
+* Click "reactions"
+* Click on the "Indexes" tab
+* Click "Create index"
+* Enter "s3Object" in the "Primary key" field
+* Select the "Add sort key" checkbox
+* Enter "timestamp" into the new text field
+* Select "Number" from the dropdown to the right of the text field
+* Click "Create index"
 
 ### Create first backend API function
 
@@ -80,18 +110,21 @@ the real deal yet.  We'll just hardcode something.
 * Click "Create function"
 * Copy/paste the following code into the "Function code" editor area,
   replacing what was there by default:
-```
+```javascript
 exports.handler = async (event) => {
-    const response = {
-        statusCode: 200,
-        body: JSON.stringify([
-            {
-                s3Object: "foo.jpg",
-                caption: "Hello, world!"
-            }
-        ]),
-    };
-    return response;
+  return [
+    {
+      s3Object: "foo.jpg",
+      caption: "Hello, world!",
+      likes: 99,
+      comments: [
+        {
+          name: "alice",
+          comment: "hi!"
+        }
+      ]
+    }
+  ];
 };
 ```
 * Click "Save"
@@ -112,11 +145,10 @@ what the API Gateway service was created to facilitate.
 * Enter a description if you'd like
 * Ensure "Regional" is selected in the "Endpoint Type" dropdown
 * Click "Create API"
-* Open the "Actions" dropdown and select "Enable CORS"
-* Click "Enable CORS and replace existing CORS headers"
 * Open the "Actions" dropdown and select "Create Resource"
-* Enter "Images" in the "Resource Name" field
+* Enter "Image" in the "Resource Name" field
 * Enter "images" in the "Resource Path" field
+* Select the "Enable API Gateway CORS" checkbox
 * Click "Create Resource"
 * With the `/images` resource selected, open the "Actions" dropdown
   and select "Create Method"
@@ -128,13 +160,8 @@ what the API Gateway service was created to facilitate.
 * Click "OK" on the modal that appears
 * Click "Test" (look for a lightning bolt icon)
 * Click "Test" on the new screen that appears
-* The response body should look like this:
-```
-{
-  "statusCode": 200,
-  "body": "[{\"s3Object\":\"foo.jpg\",\"caption\":\"Hello, world!\"}]"
-}
-```
+* Verify you see the JSON representation of the hardcoded JS data in
+  the Lambda function
 * Open the "Actions" dropdown and click "Deploy API"
 * Select "New Stage" from the "Deployment stage" dropdown
 * Enter "test" in the "Stage name" field
@@ -197,16 +224,24 @@ table.
   "AWSLambdaBasicExecutionRole-d9d04b3b-e73e-400e-b418-3fd8a6d5380a"
 * Click "Edit Policy"
 * Click the "JSON" tab
-* Add an additional object to the `Statement` array. You will need to
-  replace the text `DDB_ARN` in the JSON snippet below with the ARN of
-  the `images` table that you copied in an earlier step:
-```
+* Add additional objects to the `Statement` array. You will need to
+  replace the text `DDB_IMAGES_ARN` and `DDB_REACTIONS_ARN` in the
+  JSON snippet below with the ARN of the `images` table that you
+  copied in an earlier step:
+```json
 {
     "Effect": "Allow",
     "Action": [
         "dynamodb:Scan"
     ],
-    "Resource": "DDB_ARN"
+    "Resource": "DDB_IMAGES_ARN"
+},
+{
+    "Effect": "Allow",
+    "Action": [
+        "dynamodb:Query"
+    ],
+    "Resource": "DDB_REACTIONS_ARN/index/s3Object-timestamp-index"
 }
 ```
 * Click "Review policy"
@@ -214,27 +249,56 @@ table.
 * Open the Lambda console
 * Click "fetchRecentImages"
 * Replace the function code with the new code below:
-```
+```javascript
 "use strict";
 
 const AWS = require("aws-sdk");
 const dynamodb = new AWS.DynamoDB();
 
-exports.handler = (event, context, callback) => {
-    dynamodb.scan({
+function fetchReactions(s3Object) {
+    return dynamodb.query({
+        ExpressionAttributeValues: {
+            ":s3Object": {
+                S: s3Object
+            }
+        },
+        IndexName: "s3Object-timestamp-index",
+        KeyConditionExpression: "s3Object = :s3Object",
+        Select: "ALL_ATTRIBUTES",
+        TableName: "reactions"
+    }).promise();
+}
+
+exports.handler = async (event, context, callback) => {
+    return dynamodb.scan({
         Limit: 10,
         TableName: "images"
-    }, (err, images) => {
-        if(err) {
-            console.log(err, err.stack);
-        } else {
-            callback(null, images.Items.map((item) => {
+    }).promise().then(results => {
+        return Promise.all(results.Items.map(item => {
+            return fetchReactions(item.s3Object.S).then(reactions => {
                 return {
                     s3Object: item.s3Object.S,
-                    caption: item.caption.S
+                    caption: item.caption.S,
+                    // Count reactions of type "like"
+                    likes: reactions.Items.reduce((count, reaction) => {
+                        if(reaction.type.S == "like") {
+                            return count + 1;
+                        }
+
+                        return count;
+                    }, 0),
+                    // Find all reactions of type "comment" and serialize
+                    comments: reactions.Items.filter(reaction => {
+                        return reaction.type.S == "comment";
+                    }).map(reaction => {
+                        return {
+                            name: reaction.name.S,
+                            text: reaction.text.S
+                        };
+                    })
                 };
-            }));
-        }
+            });
+        }));
     });
 };
 ```
@@ -254,8 +318,10 @@ exports.handler = (event, context, callback) => {
 * Click "Tables" in the left-hand sidebar
 * Click "images"
 * Click "Create item"
-* Enter the image file in the "VALUE" field of `s3Object`
-* Click the `+` icon next to `s3Object`
+* Enter the image file name in the "VALUE" field of `s3Object`
+* Enter a UNIX timestamp (eval `Date.now()` in your web browser's
+  console to get the current timestamp) in the "VALUE" field of `timestamp`
+* Click the `+` icon next to `timestamp`
 * Click "Append"
 * Click "String"
 * Enter "caption" in the "FIELD" field
@@ -266,11 +332,26 @@ exports.handler = (event, context, callback) => {
 
 ## Your turn!
 
-We've walked you through setting up the core infrastructure, but there
-are still two API endpoints left to implement: An image upload
-endpoint and an image reaction endpoint.  Use what you've learned thus
-far to try to build out the rest of the API.  Ask for help if you get
-stuck.  Good luck!
+We've walked you through setting up the core infrastructure and built
+one working API endpoint, but there are still two endpoints left to
+implement:
+
+* /upload - for uploading images
+* /react - for posting reactions ("like" and "comment" are the supported reaction types)
+
+Now it's time to use what you've learned thus far to complete the
+backend API.  Take a look at the index.js file in this repository for
+more information about how the remaining endpoints are used.
+
+Ask for help if you get stuck.  Good luck!
+
+## Common issues you may run into
+
+* Forgetting to deploy API Gateway after making changes
+* Missing IAM policy to grant a Lambda function access to the right
+  resources
+* Lambda function timing out? Increase the timeout a bunch so you can
+  debug what's taking so long.
 
 ## Extracurriculars
 
@@ -289,3 +370,5 @@ next level:
   in an uploaded image?  Try using AWS's Textract service to make it
   happen.
 * Use the Polly service to convert captions and comments to speech.
+* Add support for additional reaction types.  Can you "blorp" posts on
+  Instagram?  I don't think so!
