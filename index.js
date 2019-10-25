@@ -1,5 +1,8 @@
 "use strict";
 
+var BASE_API_URL = "https://vvxani4c6l.execute-api.us-east-1.amazonaws.com/test";
+var BUCKET_NAME = "images.dev.vhlcentral.com";
+
 function fetchRecentImages() {
   var request = new XMLHttpRequest();
   request.onreadystatechange = () => {

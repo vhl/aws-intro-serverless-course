@@ -168,10 +168,13 @@ what the API Gateway service was created to facilitate.
 * Enter "test" in the "Stage name" field
 * Click "Deploy"
 * Copy the "Invoke URL"
-* Edit your local copy of the `index.html` file from the course
+* Edit your local copy of the `index.js` file from the course
   repository
 * Change the value of the `BASE_API_URL` variable to the URL you
   copied
+* Change the value of the `BUCKET_NAME` variable to the name of your
+  S3 bucket.
+* Save the file
 
 ### Upload public assets
 
