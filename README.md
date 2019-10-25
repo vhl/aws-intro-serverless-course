@@ -173,7 +173,7 @@ what the API Gateway service was created to facilitate.
 * Change the value of the `BASE_API_URL` variable to the URL you
   copied
 * Change the value of the `BUCKET_NAME` variable to the name of your
-  S3 bucket.
+  S3 bucket
 * Save the file
 
 ### Upload public assets
