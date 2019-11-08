@@ -221,6 +221,9 @@ table.
 * Click "images"
 * Copy the text to the right of "Amazon Resource Name (ARN)" and paste
   it somewhere for later (we will need it shortly)
+* Click "reactions"
+* Copy the text to the right of "Amazon Resource Name (ARN)" and paste
+  it somewhere for later
 * Open the IAM console
 * Click "Roles" in the left-hand sidebar
 * Click on the role with a name like "fetchRecentImages-role-i3r2c5j3"
@@ -322,6 +325,7 @@ exports.handler = async (event, context, callback) => {
 * Go to the DynamoDB console
 * Click "Tables" in the left-hand sidebar
 * Click "images"
+* Click the "Items" tab
 * Click "Create item"
 * Enter the image file name in the "VALUE" field of `s3Object`
 * Enter a UNIX timestamp (eval `Date.now()` in your web browser's
