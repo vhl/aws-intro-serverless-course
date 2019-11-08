@@ -328,8 +328,10 @@ exports.handler = async (event, context, callback) => {
 * Click the "Items" tab
 * Click "Create item"
 * Enter the image file name in the "VALUE" field of `s3Object`
-* Enter a UNIX timestamp (eval `Date.now()` in your web browser's
-  console to get the current timestamp) in the "VALUE" field of `timestamp`
+* Enter a UNIX timestamp (evaluate `Date.now()` in your web browser's
+  JavaScript console or evaluate `DateTime.now.to_i` with Ruby's `irb`
+  console to get the current timestamp) in the "VALUE" field of
+  `timestamp`
 * Click the `+` icon next to `timestamp`
 * Click "Append"
 * Click "String"
