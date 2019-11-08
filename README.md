@@ -75,10 +75,6 @@ Create the `reactions` table:
 
 * Click "Create table"
 * Enter "reactions" in the "Table Name" field
-* Enter "s3Object" in the "Primary key" field
-* Click "Create"
-* Click "Create table"
-* Enter "reactions" in the "Table Name" field
 * Enter "uuid" in the "Primary key" field
 * Click "Create"
 * Click "reactions"
