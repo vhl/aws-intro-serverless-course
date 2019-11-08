@@ -69,6 +69,9 @@ Create the `images` table:
 * Click "Create table"
 * Enter "images" in the "Table Name" field
 * Enter "s3Object" in the "Primary key" field
+* Select the "Add sort key" checkbox
+* Enter "timestamp" into the new text field
+* Select "Number" from the dropdown to the right of the text field
 * Click "Create"
 
 Create the `reactions` table:
