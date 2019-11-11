@@ -139,8 +139,10 @@ talk to our `fetchRecentImages` function over the Internet.  This is
 what the API Gateway service was created to facilitate.
 
 * Go to the API Gateway console
+* Click "Get started" (if present)
 * Click "Create API"
 * Ensure that "REST" is selected as the protocol
+* In the "Create new API" section, click the "New API" radio button
 * Enter "ImageService" in the "API name" field
 * Enter a description if you'd like
 * Ensure "Regional" is selected in the "Endpoint Type" dropdown
@@ -157,11 +159,12 @@ what the API Gateway service was created to facilitate.
 * Click "Save"
 * Click "OK" on the modal that appears
 * Click "Test" (look for a lightning bolt icon)
-* Click "Test" on the new screen that appears
+* Click the "Test" button on the new screen that appears
 * Verify you see the JSON representation of the hardcoded JS data in
   the Lambda function
 * Open the "Actions" dropdown and click "Enable CORS"
 * Click "Enable CORS and replace existing CORS headers"
+* Click "Yes , replace existing values"
 * Open the "Actions" dropdown and click "Deploy API"
 * Select "New Stage" from the "Deployment stage" dropdown
 * Enter "test" in the "Stage name" field
