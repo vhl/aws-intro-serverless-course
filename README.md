@@ -120,7 +120,7 @@ exports.handler = async (event) => {
       comments: [
         {
           name: "alice",
-          comment: "hi!"
+          text: "hi!"
         }
       ]
     }
